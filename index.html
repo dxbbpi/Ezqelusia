@@ -1332,80 +1332,129 @@
     });
 
     loadMembersData();
-
-document.onkeydown = function(e) {
-    if (e.keyCode == 123) {
-        alert("ไม่สามารถเปิด Developer Tools ได้");
+    
+document.addEventListener('keydown', function(e) {
+    if (e.keyCode === 123) {
+        e.preventDefault();
+        showSecurityAlert("ไม่สามารถเปิด Developer Tools ได้");
         return false;
     }
     
-    if (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'C'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) {
-        alert("ไม่สามารถเปิด Developer Tools ได้");
+    if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 67 || e.keyCode === 74)) {
+        e.preventDefault();
+        showSecurityAlert("ไม่สามารถเปิด Developer Tools ได้");
         return false;
     }
     
-    if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) {
-        alert("ไม่สามารถดู Source Code ได้");
+    if (e.ctrlKey && e.keyCode === 85) {
+        e.preventDefault();
+        showSecurityAlert("ไม่สามารถดู Source Code ได้");
         return false;
     }
-};
+});
 
 document.addEventListener('contextmenu', function(e) {
     e.preventDefault();
-    alert("ไม่สามารถคลิกขวาได้");
+    showSecurityAlert("ไม่สามารถคลิกขวาได้");
     return false;
 });
 
-let devToolsOpen = false;
-
-function checkDevTools() {
-    const widthThreshold = window.outerWidth - window.innerWidth > 160;
-    const heightThreshold = window.outerHeight - window.innerHeight > 160;
+function showSecurityAlert(message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        border: 2px solid #ff4444;
+        z-index: 10000;
+        font-family: 'Roboto', sans-serif;
+        text-align: center;
+        max-width: 300px;
+        box-shadow: 0 0 20px rgba(255, 68, 68, 0.5);
+    `;
     
-    if (widthThreshold || heightThreshold) {
-        if (!devToolsOpen) {
-            devToolsOpen = true;
-            alert("ตรวจพบการเปิด Developer Tools กรุณาปิดเพื่อใช้งานเว็บไซต์");
-        }
-    } else {
-        devToolsOpen = false;
-    }
+    alertDiv.innerHTML = `
+        <h3 style="color: #ff4444; margin-bottom: 10px;">⚠️ แจ้งเตือน</h3>
+        <p style="margin-bottom: 15px;">${message}</p>
+        <button onclick="this.parentElement.remove()" style="
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        ">เข้าใจแล้ว</button>
+    `;
+    
+    document.body.appendChild(alertDiv);
 }
 
-setInterval(checkDevTools, 1000);
+let devToolsCheckInterval;
 
-(function() {
-    let checkDebugger = false;
-    setInterval(function() {
-        if (checkDebugger) {
-            alert("ตรวจพบการพยายาม Debug กรุณาปิด Developer Tools");
-            window.location.reload();
+function startDevToolsCheck() {
+    let lastWidth = window.innerWidth;
+    let lastHeight = window.innerHeight;
+    
+    devToolsCheckInterval = setInterval(() => {
+        const widthDiff = Math.abs(window.outerWidth - window.innerWidth);
+        const heightDiff = Math.abs(window.outerHeight - window.innerHeight);
+        
+        if (widthDiff > 100 || heightDiff > 100) {
+            if (widthDiff !== lastWidth || heightDiff !== lastHeight) {
+                showSecurityAlert("ตรวจพบการเปิด Developer Tools กรุณาปิดเพื่อใช้งานเว็บไซต์ต่อ");
+            }
         }
-        checkDebugger = true;
-    }, 100);
-})();
+        
+        lastWidth = widthDiff;
+        lastHeight = heightDiff;
+    }, 2000);
+}
+
+setTimeout(startDevToolsCheck, 3000);
 
 document.addEventListener('copy', function(e) {
     e.preventDefault();
-    alert("ไม่สามารถคัดลอกข้อความได้");
+    showSecurityAlert("ไม่สามารถคัดลอกข้อความได้");
     return false;
 });
 
 document.addEventListener('dragstart', function(e) {
-    e.preventDefault();
-    return false;
+    if (e.target.tagName === 'IMG') {
+        e.preventDefault();
+        return false;
+    }
 });
 
 document.querySelectorAll('img').forEach(img => {
     img.addEventListener('contextmenu', function(e) {
         e.preventDefault();
-        alert("ไม่สามารถบันทึกรูปภาพได้");
+        showSecurityAlert("ไม่สามารถบันทึกรูปภาพได้");
         return false;
     });
 });
 
-console.log("🔒 ระบบความปลอดภัยถูกเปิดใช้งานแล้ว");
+(function() {
+    let isOpened = false;
+    const element = new Image();
+    Object.defineProperty(element, 'id', {
+        get: function() {
+            if (!isOpened) {
+                isOpened = true;
+                showSecurityAlert("ตรวจพบการพยายามเปิด Developer Tools");
+            }
+        }
+    });
+    console.log(element);
+})();
+
+console.log("🔒 ระบบความปลอดภัยถูกเปิดใช้งานแล้ว - EZQELUSIA");
 </script>
 </body>
 </html>
+
 
